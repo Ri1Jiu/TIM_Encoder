@@ -94,6 +94,9 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+int chan_index = 0;
+uint32_t channels[3] = {TIM_CHANNEL_1,TIM_CHANNEL_2,TIM_CHANNEL_3};
+
   HAL_Delay(20);
   OLED_Init();
   HAL_TIM_Encoder_Start(&htim1,TIM_CHANNEL_ALL);
@@ -110,9 +113,10 @@ int main(void)
   {
      int counter = 0;
 
-    __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,90);
-    __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,90);
-    __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,90);
+
+    // __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,99);
+    // __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,99);
+    // __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,99);
 
 
     OLED_NewFrame();
@@ -136,8 +140,26 @@ int main(void)
     OLED_DrawFilledRectangle(13,25,counter,12,OLED_COLOR_NORMAL);
 
 
-    OLED_ShowFrame();
+    if(HAL_GPIO_ReadPin(KEY_GPIO_Port,KEY_Pin) == RESET)
+    {
+      HAL_Delay(10);
+      if(HAL_GPIO_ReadPin(KEY_GPIO_Port,KEY_Pin) ==  RESET)
+      {
+        // HAL_TIM_PWM_Stop(&htim3,channels[chan_index]);
+        __HAL_TIM_SET_COMPARE(&htim3,channels[chan_index],100);
+        chan_index = (chan_index + 1) % 3;
+        HAL_TIM_PWM_Start(&htim3,channels[chan_index]);
+      }
+      while(HAL_GPIO_ReadPin(KEY_GPIO_Port,KEY_Pin) == RESET){}
+    }
 
+    __HAL_TIM_SET_COMPARE(&htim3,channels[chan_index],counter);
+    // __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,counter);
+    // __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,counter);
+    // __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,counter);
+
+    OLED_ShowFrame();
+    HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
